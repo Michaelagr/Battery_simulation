@@ -1,11 +1,3 @@
-# NOTES:
-# df["Optimized load"] is THEORETICAL peak shaving - peak is simply "set" by defining the percentile threshold. Function is peak_shaving_simulation
-# battery_simulation_v2 is the "real" battery simulation. It adds columns to the passed df.
-    # df["grid_load"] contains the "achieved" / actual load profile with a battery
-    # df["battery_discharge"] = amount of energy charged from the battery (that needs to be recharged from the grid at some point) in kW
-    # df["battery_soc"] = State of charge of battery in every timestamp (kWh)
-
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,9 +5,23 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 import locale
-#import test_daily_load
 
-# Set German locale for number formatting
+
+# Streamlit config
+st.set_page_config(page_title="Battery storage simulation dashboard", layout="wide")
+st.markdown("""
+    <style>
+    .main {background-color: #f9f9f9;}
+    .block-container {padding-top: 2rem;}
+    h1, h2, h3 {color: #1f77b4;}
+    .metric {background-color: #ffffff; padding: 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
+    .plot-box {border: 1px solid #ddd; padding: 10px; border-radius: 10px; background-color: #fff; margin-bottom: 1rem;}
+    .metric-title {font-size: 1.8rem; color: #444;font-weight: bold}
+    .metric-value {font-size: 1.7rem; color: #111}
+    </style>
+""", unsafe_allow_html=True)
+# .metric-value {font-size: 1.5rem; color: #111; font-weight: bold;}
+
 try:
     locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
 except locale.Error:
@@ -34,20 +40,6 @@ plotly_config = {
 }
 #from graphs import demand_charge
 
-# Streamlit config
-st.set_page_config(page_title="Battery storage simulation dashboard", layout="wide")
-st.markdown("""
-    <style>
-    .main {background-color: #f9f9f9;}
-    .block-container {padding-top: 2rem;}
-    h1, h2, h3 {color: #1f77b4;}
-    .metric {background-color: #ffffff; padding: 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
-    .plot-box {border: 1px solid #ddd; padding: 10px; border-radius: 10px; background-color: #fff; margin-bottom: 1rem;}
-    .metric-title {font-size: 1.8rem; color: #444;font-weight: bold}
-    .metric-value {font-size: 1.7rem; color: #111}
-    </style>
-""", unsafe_allow_html=True)
-# .metric-value {font-size: 1.5rem; color: #111; font-weight: bold;}
 st.title("🔋 ecoplanet Battery Storage Simulation Dashboard")
 
 #--------------------- Helper Definitions -------------------------
