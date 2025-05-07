@@ -118,7 +118,7 @@ def battery_simulation_v02(df, battery_capacity, power_rating, depth_of_discharg
 ######### Uploader #########
 with st.sidebar:
     st.subheader("File upload")
-    uploaded_file = st.file_uploader("📁 Upload your load profile data (CSV or XLSX)", type=["csv", "xlsx"])
+    uploaded_file = st.file_uploader("📁 Upload your load profile data (CSV or XLSX). Please make sure the file has two columns: "timestamp" and "load", type=["csv", "xlsx"])
     ## Handling
     if uploaded_file:
         df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith(".csv") else pd.read_excel(uploaded_file)
@@ -126,7 +126,7 @@ with st.sidebar:
         col_map = {col.lower(): col for col in df.columns}
         date_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["date", "day"])), None)
         time_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["time", "hour", "timestamp"])), None)
-        load_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["kwh", "load", "value", "value_kwh"])), None)
+        load_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["kW", "load", "value", "value_kw"])), None)
 
         if date_col and time_col:
             df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
@@ -136,9 +136,8 @@ with st.sidebar:
             df["timestamp"] = pd.to_datetime(df[time_col])
         else:
             df["timestamp"] = pd.to_datetime(df.iloc[:, 0])  # fallback
-
         if load_col:
-            df["load"] = df[load_col]
+            df["load"] = df[load_col]*4
 
         # Create date columns
         df["datetime"] = df["timestamp"]
