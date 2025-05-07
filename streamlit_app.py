@@ -13,7 +13,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 import locale
-import test_daily_load
+#import test_daily_load
 
 # Set German locale for number formatting
 try:
@@ -119,76 +119,6 @@ def battery_simulation_v02(df, battery_capacity, power_rating, depth_of_discharg
     df["battery_discharge"] = discharge
     df["battery_soc"] = soc_state
     return df
-
-
-def ai_recommended_battery_sizing(load_data, grid_load_data, soc_data, threshold_kw, battery_capacity, power_rating, battery_efficiency=1):
-    """
-    Analyzes simulation results and uses OpenAI to recommend optimized battery sizing.
-    Parameters:
-    - load_data: list or np.array of original load values
-    - grid_load_data: list or np.array of grid load after battery discharge with currently set  battery specs
-    - soc_data: list or np.array of battery state of charge
-    - threshold_kw: desired peak shaving threshold
-    - battery_capacity: current battery capacity in kWh
-    - power_rating: current battery power rating in kW
-    - battery_efficiency: battery round-trip efficiency (default: 0.9)
-
-    Returns:
-    - recommendation (str): A GPT-generated recommendation string
-    """
-
-    # Step 1: Extract key indicators from simulation
-    max_original_load = max(load_data)
-    num_peaks = np.array(load_data) > threshold_kw
-    max_grid_load = max(grid_load_data)
-    violations = np.array(grid_load_data) > threshold_kw
-    num_violations = int(np.sum(violations))
-    percent_violations = round(np.mean(violations) * 100, 2)
-    soc_during_peaks = np.mean(np.array(soc_data)[violations]) if num_violations > 0 else "n/a"
-
-    # Step 2: Build prompt
-    prompt = f"""
-You are an expert for industrial battery energy storages analyzing the historical load profiles of a company to find the optimal battery setup. 
-Help recommend the ideal battery setup for peak shaving:
-
-Simulation results summary:
-- Original max load: {max_original_load:.0f} kWh
-- Desired threshold: {threshold_kw:.0f} kWh
-- Amount of 15min intervals in which threshold is exceeded: {num_peaks}
-- Battery capacity: {battery_capacity} kWh
-- Battery power rating: {power_rating} kW
-- Battery efficiency: {battery_efficiency * 100:.0f}%
-- Max grid load after battery discharge: {max_grid_load:.0f} kW
-- Peak threshold violations: {num_violations} times ({percent_violations}% of intervals)
-- Battery state-of-charge (SOC) during violations: {soc_during_peaks}
-
-Please provide a recommendation:
-- Should the battery capacity and power rating be increased or decreased?
-- What would the ideal setup be based on the load profile?
-- Should the threshold be adjusted?
-- How could this setup better catch all load peaks above the threshold?
-Keep the response actionable and easy to understand.
-"""
-
-    # Step 3: Call OpenAI
-    try:
-        client = openai.OpenAI(
-            api_key="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")
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system",
-                 "content": "You are an expert in energy systems and battery optimization."},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.3,
-        )
-        recommendation = response.choices[0].message.content
-        return recommendation
-
-    except Exception as e:
-        return f"Error getting recommendation: {e}"
-
 
 #--------------------------------------------- FILE PROCESSING ------------------------------------------------------
 
@@ -360,7 +290,7 @@ with ((tab1)):
                                       labels={"time": "Time", "load": "Average Power (kW)"})
                 fig_overview.update_layout(height=400, xaxis_title="Week", xaxis_tickangle=-45, xaxis_tickformat="%b W%W", xaxis=dict(nticks=52))
              # Display the overview plot
-                test_daily_load.create_load_charts(df)
+               # test_daily_load.create_load_charts(df)
 
             st.plotly_chart(fig_overview, use_container_width=True, config=plotly_config)
 
