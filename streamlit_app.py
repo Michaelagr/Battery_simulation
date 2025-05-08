@@ -740,8 +740,6 @@ with tab2:
                     st.plotly_chart(fig_batt_exp, use_container_width=True)
 
                     with st.container(border=True):
-                        st.write(roi_demand_charge)
-                        st.write(df_exp["load"].max())
                         annual_savings_actual = (df_exp["load"].max() - df_exp["grid_load"].max()) * roi_demand_charge
 
                         # total battery cost: cost per kWh * capacity *  system cost multiplier
