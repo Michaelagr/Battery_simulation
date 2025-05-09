@@ -1,3 +1,11 @@
+# NOTES:
+# df["Optimized load"] is THEORETICAL peak shaving - peak is simply "set" by defining the percentile threshold. Function is peak_shaving_simulation
+# battery_simulation_v2 is the "real" battery simulation. It adds columns to the passed df.
+    # df["grid_load"] contains the "achieved" / actual load profile with a battery
+    # df["battery_discharge"] = amount of energy charged from the battery (that needs to be recharged from the grid at some point) in kW
+    # df["battery_soc"] = State of charge of battery in every timestamp (kWh)
+
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -5,7 +13,26 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 import locale
+#import test_daily_load
 
+# Set German locale for number formatting
+try:
+    locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
+except locale.Error:
+    try:
+        locale.setlocale(locale.LC_ALL, 'deu_deu')
+    except locale.Error:
+        st.write("Could not set German locale for number formatting.")
+
+# ADDED: This is the key change to prevent plots from opening in new tabs
+plotly_config = {
+    'displayModeBar': False,
+    'showTips': False,
+    'displaylogo': False,
+    'scrollZoom': True,
+    'staticPlot': False
+}
+#from graphs import demand_charge
 
 # Streamlit config
 st.set_page_config(page_title="Battery storage simulation dashboard", layout="wide")
@@ -21,25 +48,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 # .metric-value {font-size: 1.5rem; color: #111; font-weight: bold;}
-
-try:
-    locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
-except locale.Error:
-    try:
-        locale.setlocale(locale.LC_ALL, 'deu_deu')
-    except locale.Error:
-        st.warning("Could not set German locale for number formatting.")
-
-# ADDED: This is the key change to prevent plots from opening in new tabs
-plotly_config = {
-    'displayModeBar': False,
-    'showTips': False,
-    'displaylogo': False,
-    'scrollZoom': True,
-    'staticPlot': False
-}
-#from graphs import demand_charge
-
 st.title("🔋 ecoplanet Battery Storage Simulation Dashboard")
 
 #--------------------- Helper Definitions -------------------------
@@ -118,7 +126,7 @@ def battery_simulation_v02(df, battery_capacity, power_rating, depth_of_discharg
 ######### Uploader #########
 with st.sidebar:
     st.subheader("File upload")
-    uploaded_file = st.file_uploader("📁 Upload your load profile data (CSV or XLSX). Please make sure the file has two columns (timestamp) and (load)", type=["csv", "xlsx"])
+    uploaded_file = st.file_uploader("📁 Upload your load profile data (CSV or XLSX). Please make sure the file has two columns 'timestamp' and 'load'.", type=["csv", "xlsx"])
     ## Handling
     if uploaded_file:
         df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith(".csv") else pd.read_excel(uploaded_file)
@@ -126,7 +134,7 @@ with st.sidebar:
         col_map = {col.lower(): col for col in df.columns}
         date_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["date", "day"])), None)
         time_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["time", "hour", "timestamp"])), None)
-        load_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["kW", "load", "value", "value_kw"])), None)
+        load_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["kwh", "load", "value", "value_kwh"])), None)
 
         if date_col and time_col:
             df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
@@ -136,8 +144,9 @@ with st.sidebar:
             df["timestamp"] = pd.to_datetime(df[time_col])
         else:
             df["timestamp"] = pd.to_datetime(df.iloc[:, 0])  # fallback
+
         if load_col:
-            df["load"] = df[load_col]*4
+            df["load"] = df[load_col]
 
         # Create date columns
         df["datetime"] = df["timestamp"]
@@ -156,16 +165,14 @@ with st.sidebar:
         with st.expander ("### 📊 Raw data preview"):
             st.write(df.head())
 
-################################################################################ sidebar ######################################################
-
-
-
 
 ################################################################################ LOAD PROFILE INFORMATION ######################################################
 
-tab1, tab2, tabsimulation = st.tabs(["Load profile overview", "Peak shaving", "Battery sizing wizzard"])
+tab1, tab2, tabsimulation = st.tabs(["Load profile overview", "Peak shaving", "Simplified battery sizing wizzard"])
 
 with ((tab1)):
+    if not uploaded_file:
+        st.subheader("⚠️ Please upload your load profile in the left sidebar.")
 
     if uploaded_file:
 
@@ -209,7 +216,7 @@ with ((tab1)):
         with tab_agg:
             time_aggregation = st.radio(
                 "Select view:",
-                ["Total", "Monthly average", "Weekly average", "Daily view", "Hourly view"],
+                ["Total", "Monthly average", "Weekly average", "Daily average", "Hourly average"],
                 horizontal=True
             )
 
@@ -254,7 +261,7 @@ with ((tab1)):
                 fig_overview.update_layout(height=400, xaxis_title="Week", xaxis_tickangle=-45, xaxis_tickformat="%b W%W", xaxis=dict(nticks=52))
 
 
-            elif time_aggregation == "Daily view":  # Daily Average
+            elif time_aggregation == "Daily average":  # Daily Average
 
                 # Grouped by day
                 days_avg = df.groupby("Weekday")["load"].mean().reset_index()
@@ -265,23 +272,19 @@ with ((tab1)):
                 days_avg = days_avg.sort_values('weekday_cat')
                 days_avg = days_avg.drop('weekday_cat', axis=1)
 
-                fig_days = px.bar(days_avg, x="Weekday", y="load",
+                fig_overview = px.bar(days_avg, x="Weekday", y="load",
                                   title="Average load by weekday",
                                   labels={"Weekday": "Date", "load": "Average Power (kW)"})
-                fig_days.update_layout(height=400, xaxis_title="Days", xaxis_tickangle=-45)
-                st.write(fig_days)
-
+                fig_overview.update_layout(height=400, xaxis_title="Days", xaxis_tickangle=-45)
 
             else:
-                #st.write("TBD")
                 hourly_avg = df.groupby( ["Weekday", "time"])["load"].mean().reset_index()
 #                weekly_avg = df_iso.groupby(["iso_year", "iso_week"])["load"].mean().reset_index()
                 fig_overview = px.bar(hourly_avg, x="time", y="load",
                                       title="Average load (hour based) ",
                                       labels={"time": "Time", "load": "Average Power (kW)"})
                 fig_overview.update_layout(height=400, xaxis_title="Week", xaxis_tickangle=-45, xaxis_tickformat="%b W%W", xaxis=dict(nticks=52))
-             # Display the overview plot
-               # test_daily_load.create_load_charts(df)
+
 
             st.plotly_chart(fig_overview, use_container_width=True, config=plotly_config)
 
@@ -316,6 +319,7 @@ with ((tab1)):
             with col_context_left:
                 st.subheader(f"\n")
                 # Let user select a specific peak timestamp
+                st. write("Select a timestamp to explore context")
                 selected_timestamp = st.selectbox("Select a timestamp to explore context", top_peaks["timestamp"].astype(str))
                 # Convert back to datetime if needed
                 selected_timestamp = pd.to_datetime(selected_timestamp)
@@ -355,7 +359,7 @@ with ((tab1)):
             with col_context_buffer:
                 selected_day = selected_timestamp.date()
                 df_day = df_peaks[df_peaks["timestamp"].dt.date == selected_day]
-                fig_day = px.line(df_day, x="timestamp", y="load", title=f"🔋 Load curve for {selected_day}")
+                fig_day = px.line(df_day, x="timestamp", y="load", title=f"🔋 Load curve for selected day ({selected_day})")
                 fig_day.update_layout(height=300, margin=dict(l=10, r=10, t=40, b=10))
                 st.plotly_chart(fig_day, use_container_width=True)
 
@@ -411,7 +415,7 @@ with tab2:
                 battery_capacity = st.number_input("Battery capacity (kWh)", min_value=1, value=500)
                 power_rating = st.number_input("Power rating (kW)", min_value=1, value=250)
                 battery_cost_per_kwh = st.number_input("Battery cost per kWh (€/kWh)", min_value=50, value=200)
-                system_cost_multiplier = st.number_input("System cost multiplier", min_value=1.0, value=1.2)
+                system_cost_multiplier = st.number_input("System cost multiplier ", min_value=1.0, value=1.2)
 
                 with st.expander("More battery settings"):
                     depth_of_discharge = st.slider("Depth of discharge (%)", 0, 100, 80)
@@ -435,7 +439,6 @@ with tab2:
                 # -----------------------------        DF Preparation -----------------------------------------------------
                 # Peak shaving - in THEORY without considering battery sizing
                 df["Optimized Load"] = peak_shaving(df["load"].values, discharge_percentage)
-
                 # Peak shaving: with battery settings
                 df = battery_simulation_v02(df, battery_capacity, power_rating, depth_of_discharge, discharge_percentage)
 
@@ -462,7 +465,7 @@ with tab2:
                 st.write("\n")
 
 
-            tab_ps_theory, tab_battery_simulation, tab_financials = st.tabs(["Peak shaving visualization", "🔋 Battery Discharge Simulation", "💰 Financial impact"])
+            tab_ps_theory, tab_battery_simulation = st.tabs(["Peak shaving visualization", "🔋 Battery Discharge Simulation"])
 
             ### Show peak shaving IN THEORY - no battery involved
             with tab_ps_theory:
@@ -574,21 +577,21 @@ with tab2:
                         st.write(f"The target load threshold is {(peakshaving_threshold):,.0f} kW. ")
                         st.write(f"A battery with {battery_capacity}kWh capacity and {power_rating}kW power rating achieves a peak load of {df['grid_load'].max():,.0f} kW.")
 
-                    # ------------------------------------- OPENAI EXPERIMENT ---------------------------------------------------------
 
-
-
-                #######################################################################
 
     with tabsimulation:
         if uploaded_file:
-            # Create test ofr battery
+            # Create test for battery
             df_exp = df.copy()
             st.header("🔋 📉 Battery Simulation Dashboard")
+            st.warning("**Disclaimer**: This dashboard is intended for **indicative purposes only**. "
+                       "All calculations and results are based on **simplified assumptions** and **should not be interpreted as precise or reliable forecasts.** "
+                       "The tool provides no guarantee of accuracy, performance, or financial outcomes. Users must validate all assumptions independently and conduct a **thorough technical and financial analysis** before making any decisions based on the results shown. "
+                       "The creators of this dashboard accept no liability for any actions taken based on its outputs.")
 
             # ----------- Battery configurations -----------------------
             battery_configs = {
-                "Small": {"capacity": 100, "power": 50},
+                "Small": {"capacity": 90, "power": 92},
                 "Medium": {"capacity": 215, "power": 100},
                 "Large": {"capacity": 500, "power": 250}
             }
@@ -599,21 +602,28 @@ with tab2:
             if 'roi_power_rating' not in st.session_state:
                 st.session_state.roi_power_rating = 100
 
+            if 'battery_cost_per_kwh' not in st.session_state:
+                st.session_state.battery_cost_per_kwh = 400
+
             roi_battery_capacity = 215
             roi_power_rating = 100
+            battery_cost_per_kwh = 400
 
             # Functions to update battery values
             def set_small():
-                st.session_state.roi_battery_capacity = 100
-                st.session_state.roi_power_rating = 50
+                st.session_state.roi_battery_capacity = 90
+                st.session_state.roi_power_rating = 92
+                st.session_state.battery_cost_per_kwh = 400
 
             def set_medium():
                 st.session_state.roi_battery_capacity = 215
                 st.session_state.roi_power_rating = 100
+                st.session_state.battery_cost_per_kwh = 220
 
             def set_large():
                 st.session_state.roi_battery_capacity = 500
                 st.session_state.roi_power_rating = 250
+                st.session_state.battery_cost_per_kwh = 300
 
             def set_custom():
                 # This just activates the custom input section
@@ -629,13 +639,14 @@ with tab2:
                         st.markdown("### 🔧 Battery selection")
 
                         # Create simple buttons stacked vertically
-                        st.button("Small (100 kWh / 50 kW)", on_click=set_small)
+                        st.button("Small (90 kWh / 92 kW)", on_click=set_small)
                         st.button("Medium (215 kWh / 100 kW)", on_click=set_medium)
                         st.button("Large (500 kWh / 250 kW)", on_click=set_large)
 
                         if 'show_custom' not in st.session_state:
                             st.session_state.show_custom = False
                         st.button("Custom Configuration", on_click=set_custom)
+
                         if st.session_state.show_custom:
                             st.session_state.roi_battery_capacity = st.number_input(
                                 "Custom Battery Capacity (kWh)",
@@ -652,6 +663,10 @@ with tab2:
                             # Display the current values
                         st.write(f"Seleted capacity: **{st.session_state.roi_battery_capacity} kWh**")
                         st.write(f"Selected power rating: **{st.session_state.roi_power_rating} kW**")
+                        st.write("---")
+                        st.write("**Battery cost assumptions**")
+                        st.session_state.battery_cost_per_kwh = st.number_input("Battery cost per kWh (€/kWh)", min_value=100, value=st.session_state.battery_cost_per_kwh)
+                        system_cost_multiplier = st.number_input("System cost multiplier", min_value=1.0, value=1.2)
 
                     ## --------------------------------- PEAK REDUCTION --------------------------------------------------------------------
                     with st.container(border=True):
@@ -663,41 +678,71 @@ with tab2:
                         calculated_peakshaving_threshold = (peak_load - value_peak_reduction) / peak_load *100
                         st.write(f"Peak load reduction: {100-calculated_peakshaving_threshold:.2f}%")
 
-                    ## -----------------------------------------------------------------------------------------------------------------------
+                    ## -------------------------------------------  FINANCIAL ASSUMPTIONS ----------------------------------------------------------------------------
 
 
                     with st.container(border=True):
                         st.markdown("### 💰 Financial assumptions")
-                        st.write("Peak shaving-related assumptions")
-                        roi_demand_charge = st.number_input("Demand Charge (€/kW/year) ", min_value=1, value=200, help="Assumed annual savings for peak reduction.")
-                        #annual_electricity_price = st.number_input("Annual electricity price (€/kWh)", min_value=0.0, value=0.2)
-                        st.write("Battery-related assumptions")
-                        battery_cost_per_kwh = st.number_input("Battery Cost per kWh (€/kWh)", min_value=100, value=400)
-                        system_cost_multiplier = st.number_input("System Cost Multiplier", min_value=1.0, value=1.2)
+                        st.write("Peak shaving-related savings")
+                        demand_charge_exp = st.number_input("Demand Charge (€/kW/year) ", min_value=1, value=200, help="Assumed annual savings for peak reduction.")
 
+                    ###############################################################################################################################
+
+                    # -----------------------------        PEAKSHAVING METRICS CALCULATION   -----------------------------------------------------
+
+                    df_exp["Optimized Load"] = peak_shaving(df_exp["load"].values, calculated_peakshaving_threshold)
                     df_exp = battery_simulation_v02(df_exp, st.session_state.roi_battery_capacity,  st.session_state.roi_power_rating, 90, calculated_peakshaving_threshold)
 
+                    peak_before = df_exp["load"].max()
+                    peak_target = df_exp["Optimized Load"].max()
+                    peak_after = df_exp["grid_load"].max()
+
+                    peak_reduction_target = peak_before - peak_target
+                    peak_reduction_actual = peak_before - peak_after
+
+                    annual_savings_target = peak_reduction_target * demand_charge_exp
+                    annual_savings_actual = peak_reduction_actual * demand_charge_exp
+
+
+                    # --------------------------------   OTHER METRICS CALCULATION------------------------------------------------
+
+
+                    # total battery cost: cost per kWh * capacity *  system cost multiplier
+                    total_battery_cost = st.session_state.roi_battery_capacity * st.session_state.battery_cost_per_kwh * system_cost_multiplier
+                    payback_period = total_battery_cost / annual_savings_actual if annual_savings_actual > 0 else float("inf")
+                    payback_period_target = total_battery_cost / annual_savings_actual if annual_savings_actual > 0 else float("inf")
+                    roi = (annual_savings_actual * battery_lifetime - total_battery_cost) / total_battery_cost * 100
+
+
                 with cols[1]:
-#                    st.markdown("### 📈 Different Visualizations")
+                    if (peak_reduction_actual) == 0 :
+                        st.warning("⚠️ The selected battery capacity is too low for succesful peakshaving with your load profile. \n "
+                                   "Try using a battery with a higher capacity or adjusting the peakshaving threshold to a lower value.⚠️")
+                    elif (peak_reduction_actual) < 0.98*st.session_state.roi_power_rating:
+                        st.warning(f"Amount shaved: {peak_reduction_actual:,.0f}kW"
+                                    "⚠️ The selected battery specifications are not sufficient for your load profile. \n "
+                                   "Try using a battery with a higher capacity or adjusting the peakshaving threshold to a lower value.⚠️")
+
+
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
                         st.markdown(
-                            "<div class='metric'><div class='metric-title'>🔺 Peak load</div><div class='metric-value'>" + f"{df_exp["load"].max():,.1f} kW" + "</div></div>",
+                            "<div class='metric'><div class='metric-title'>🔺 Peak load</div><div class='metric-value'>" + f"{peak_before:,.1f} kW" + "</div></div>",
                             unsafe_allow_html=True)
                     with col2:
                         st.markdown(
-                            "<div class='metric'><div class='metric-title'>🔻 Reduced peak</div><div class='metric-value'>" + f"{df_exp["grid_load"].max():,.1f} kW" + "</div></div>",
+                            "<div class='metric'><div class='metric-title'>🔻 Reduced peak</div><div class='metric-value'>" + f"{peak_after:,.1f} kW" + "</div></div>",
                             unsafe_allow_html=True)
                     with col3:
                         st.markdown(
                             "<div class='metric'><div class='metric-title'>📉 Peak reduction</div><div class='metric-value'>" +
-                            f"{((df_exp["load"].max() - df_exp["grid_load"].max()) / df_exp["load"].max() * 100):.1f}%" + "</div></div>",
+                            f"{(peak_reduction_actual / peak_before * 100):.1f}%" + "</div></div>",
                             unsafe_allow_html=True)
                     with col4:
                         st.markdown(
-                            "<div class='metric'><div class='metric-title'>💸 Max. savings (p.a.)</div><div class='metric-value'>" + f"€{roi_demand_charge*(df_exp["load"].max() - df_exp["grid_load"].max()):,.1f}" + "</div></div>",
+                            "<div class='metric'><div class='metric-title'>💸 Savings (p.a.)</div><div class='metric-value'>" + f"€{demand_charge_exp * (peak_before - df_exp["grid_load"].max()):,.1f}" + "</div></div>",
                             unsafe_allow_html=True,
-                            help="Savings are calculated from peak reduction only, assuming a reduction of " + f"{((df_exp["load"].max() - df_exp["grid_load"].max())):,.1f} kW" + " and a peak demand charge of " + f"€/kW{roi_demand_charge:,.1f}" + " per kW per year.")
+                            help="Savings are calculated from peak reduction only, assuming a reduction of " + f"{((df_exp["load"].max() - df_exp["grid_load"].max())):,.1f} kW" + " and a peak demand charge of " + f"€/kW{demand_charge_exp:,.1f}" + " per kW per year.")
 
                     st.write("---")
 
@@ -740,13 +785,7 @@ with tab2:
                     st.plotly_chart(fig_batt_exp, use_container_width=True)
 
                     with st.container(border=True):
-                        annual_savings_actual = (df_exp["load"].max() - df_exp["grid_load"].max()) * roi_demand_charge
 
-                        # total battery cost: cost per kWh * capacity *  system cost multiplier
-                        total_battery_cost = st.session_state.roi_battery_capacity * battery_cost_per_kwh * system_cost_multiplier
-                        payback_period = total_battery_cost / annual_savings_actual if annual_savings_actual > 0 else float("inf")
-                        payback_period_target = total_battery_cost / annual_savings_actual if annual_savings_actual > 0 else float("inf")
-                        roi = (annual_savings_actual * battery_lifetime - total_battery_cost) / total_battery_cost * 100
 
                         col1, col2, col3 = st.columns(3)
                         with col1:
@@ -756,8 +795,8 @@ with tab2:
                                       f"{df_exp["grid_load"].max() - df["load"].max():,.0f} kW", delta_color="inverse")
                         with col2:
                             col2.subheader("Financials")
-                            st.metric("💶 Battery investment cost", f"€ {total_battery_cost:,.0f}")
-                            st.metric(f"💰 Annual savings from peak shaving with demand charge of {roi_demand_charge}€/kW",
+                            st.metric("💶 Battery investment cost", f"~€ {total_battery_cost:,.0f}")
+                            st.metric(f"💰 Annual savings from peak shaving with demand charge of {demand_charge_exp}€/kW",
                                       f"€ {annual_savings_actual:,.1f}")
                         with col3:
                             col3.subheader("ROI")
@@ -766,7 +805,7 @@ with tab2:
 
 
 
-                    #####################################################################################
+                    #####################################   LOAD DURATION CURVE   ################################################
 
 
                     sorted_loads = df_exp["load"].sort_values(ascending=False).reset_index(drop=True)
@@ -778,36 +817,5 @@ with tab2:
                                    annotation_text="Battery Threshold", annotation_position="bottom right")
                     fig_ldc.update_layout(yaxis_title="Power (kW)", xaxis_title="Hours (sorted by load)")
                     st.plotly_chart(fig_ldc, use_container_width=True)
-
-                    # Peak stats
-                    original_peak = df_exp["load"].max()
-                    optimized_peak = (df_exp["load"].max()* calculated_peakshaving_threshold/100)
-                    peak_reduction = original_peak - optimized_peak
-
-                    #Cost: difference between peaks * demand charge
-                    annual_cost_before = original_peak * roi_demand_charge
-                    annual_cost_after = optimized_peak * roi_demand_charge
-
-                    # total cost: cost per kWh * capacity *  system cost multiplier
-                    total_battery_cost = roi_battery_capacity * battery_cost_per_kwh * system_cost_multiplier
-                    payback_period = total_battery_cost / annual_savings_target if annual_savings_target > 0 else float("inf")
-                    roi = (annual_savings_target * battery_lifetime - total_battery_cost) / total_battery_cost * 100
-
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Original Peak Load", f"{original_peak:,.0f} kW")
-                        st.metric("Optimized Peak Load", f"{optimized_peak:,.0f} kW")
-                        st.metric("Peak Reduction", f"{peak_reduction:,.0f} kW")
-                    with col2:
-                        st.metric("💰 Annual Savings from peak shaving", f"€ {annual_savings_target:,.0f}")
-                        st.metric("💶 Battery Investment Cost", f"€ {total_battery_cost:,.0f}")
-                    with col3:
-                        st.metric("✅ Payback Period", f"{payback_period:.1f} years")
-                        st.metric(f"📈 ROI over {battery_lifetime} Years (battery lifetime)", f"{roi:.1f}%")
-
-                    st.write("---")
-
-
-
 
 
