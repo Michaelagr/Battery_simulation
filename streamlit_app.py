@@ -1,11 +1,3 @@
-# NOTES:
-# df["Optimized load"] is THEORETICAL peak shaving - peak is simply "set" by defining the percentile threshold. Function is peak_shaving_simulation
-# battery_simulation_v2 is the "real" battery simulation. It adds columns to the passed df.
-    # df["grid_load"] contains the "achieved" / actual load profile with a battery
-    # df["battery_discharge"] = amount of energy charged from the battery (that needs to be recharged from the grid at some point) in kW
-    # df["battery_soc"] = State of charge of battery in every timestamp (kWh)
-
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
