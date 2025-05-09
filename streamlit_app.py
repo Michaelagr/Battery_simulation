@@ -29,7 +29,7 @@ except locale.Error:
     try:
         locale.setlocale(locale.LC_ALL, 'deu_deu')
     except locale.Error:
-        st.write("Could not set German locale for number formatting.")
+        st.write(" ")
 
 # ADDED: This is the key change to prevent plots from opening in new tabs
 plotly_config = {
@@ -430,6 +430,12 @@ with tabsimulation:
             st.session_state.roi_power_rating = 250
             st.session_state.battery_cost_per_kwh = 300
 
+        def set_xlarge():
+            st.session_state.roi_battery_capacity = 1000
+            st.session_state.roi_power_rating = 500
+            st.session_state.battery_cost_per_kwh = 280
+
+
         def set_custom():
             # This just activates the custom input section
             st.session_state.show_custom = True
@@ -447,6 +453,7 @@ with tabsimulation:
                     st.button("Small (90 kWh / 92 kW)", on_click=set_small)
                     st.button("Medium (215 kWh / 100 kW)", on_click=set_medium)
                     st.button("Large (500 kWh / 250 kW)", on_click=set_large)
+                    st.button("Extra large (1MWh / 500 kW)", on_click=set_xlarge)
 
                     if 'show_custom' not in st.session_state:
                         st.session_state.show_custom = False
