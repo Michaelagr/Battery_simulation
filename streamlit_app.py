@@ -7,6 +7,21 @@ import numpy as np
 import locale
 #import test_daily_load
 
+
+# Streamlit config
+st.set_page_config(page_title="Battery storage simulation dashboard", layout="wide")
+st.markdown("""
+    <style>
+    .main {background-color: #f9f9f9;}
+    .block-container {padding-top: 2rem;}
+    h1, h2, h3 {color: #1f77b4;}
+    .metric {background-color: #ffffff; padding: 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
+    .plot-box {border: 1px solid #ddd; padding: 10px; border-radius: 10px; background-color: #fff; margin-bottom: 1rem;}
+    .metric-title {font-size: 1.8rem; color: #444;font-weight: bold}
+    .metric-value {font-size: 1.7rem; color: #111}
+    </style>
+""", unsafe_allow_html=True)
+
 # Set German locale for number formatting
 try:
     locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
@@ -26,19 +41,8 @@ plotly_config = {
 }
 #from graphs import demand_charge
 
-# Streamlit config
-st.set_page_config(page_title="Battery storage simulation dashboard", layout="wide")
-st.markdown("""
-    <style>
-    .main {background-color: #f9f9f9;}
-    .block-container {padding-top: 2rem;}
-    h1, h2, h3 {color: #1f77b4;}
-    .metric {background-color: #ffffff; padding: 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
-    .plot-box {border: 1px solid #ddd; padding: 10px; border-radius: 10px; background-color: #fff; margin-bottom: 1rem;}
-    .metric-title {font-size: 1.8rem; color: #444;font-weight: bold}
-    .metric-value {font-size: 1.7rem; color: #111}
-    </style>
-""", unsafe_allow_html=True)
+
+
 # .metric-value {font-size: 1.5rem; color: #111; font-weight: bold;}
 st.title("🔋 ecoplanet Battery Storage Simulation Dashboard")
 
@@ -618,3 +622,10 @@ with tabsimulation:
                                annotation_text="Battery Threshold", annotation_position="bottom right")
                 fig_ldc.update_layout(yaxis_title="Power (kW)", xaxis_title="Hours (sorted by load)")
                 st.plotly_chart(fig_ldc, use_container_width=True)
+
+
+
+
+
+
+
