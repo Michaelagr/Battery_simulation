@@ -335,7 +335,7 @@ with ((tab1)):
 
 
                     with col_context_right:
-                        st.subheader(f"📊 10 entries before and after {selected_timestamp}")
+                        st.subheader(f"📊 10 entries before and after selected peak (on {selected_timestamp})")
                        # st.dataframe(context_df[["date","Weekday","load"]])
                     #st.dataframe(context_df)
                         def highlight_selected_row(row):
