@@ -289,7 +289,7 @@ with ((tab1)):
         with tab_toppeaks:
             st.subheader("🚩  Highest peaks in load profile")
 
-            col1, col2, col3 = st.columns([1, 3, 6], vertical_alignment="top")
+            col1, col2, col3 = st.columns([2, 3, 5], vertical_alignment="top")
             with col1:
                 with st.container(border = True):
                     # Let user select number of entries shown
