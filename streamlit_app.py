@@ -544,7 +544,7 @@ with tabsimulation:
                     if (peak_reduction_actual) == 0 :
                         st.warning("⚠️ The selected battery capacity is too low for succesful peakshaving with your load profile. \n "
                                    "Try using a battery with a higher capacity or adjusting the peakshaving threshold to a lower value.⚠️")
-                    elif (peak_reduction_actual) < 0.98*st.session_state.roi_power_rating:
+                    elif (peak_reduction_actual) < 0.98*value_peak_reduction:
                         st.warning(f"Amount shaved: {peak_reduction_actual:,.0f}kW"
                                     "⚠️ The selected battery specifications are not sufficient for your load profile. \n "
                                    "Try using a battery with a higher capacity or adjusting the peakshaving threshold to a lower value.⚠️")
