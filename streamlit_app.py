@@ -413,7 +413,7 @@ with tabsimulation:
 
         roi_battery_capacity = 0
         roi_power_rating = 0
-        battery_cost_per_kwh = 400
+        battery_cost_per_kwh = 220
 
         # Functions to update battery values
         def set_small():
