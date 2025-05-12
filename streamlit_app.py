@@ -132,9 +132,19 @@ with st.sidebar:
         load_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["kw", "load", "value", "value_kw", "power", "entnahme"])), None)
 
         if date_col and time_col:
-            df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
+            #df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
         elif date_col:
-            df["timestamp"] = pd.to_datetime(df[date_col], dayfirst = True)
+            try:
+                df["timestamp"] = pd.to_datetime(df[date_col], dayfirst=True)
+            except Exception as e1:
+                try:
+                    df["timestamp"] = pd.to_datetime(df[date_col], format="mixed", dayfirst=True)
+                except Exception as e2:
+                    try:
+                        df["timestamp"] = pd.to_datetime(df[date_col], format="ISO8601", dayfirst=True)
+                    except Exception as e3:
+                        raise ValueError(f"Failed to parse datetime. Errors:\n1. {e1}\n2. {e2}\n3. {e3}")
+    return df
         elif time_col:
             df["timestamp"] = pd.to_datetime(df[time_col], dayfirst = True)
         else:
