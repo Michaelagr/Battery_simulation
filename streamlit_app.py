@@ -134,11 +134,11 @@ with st.sidebar:
         if date_col and time_col:
             df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
         elif date_col:
-            df["timestamp"] = pd.to_datetime(df[date_col])
+            df["timestamp"] = pd.to_datetime(df[date_col], dayfirst = True)
         elif time_col:
             df["timestamp"] = pd.to_datetime(df[time_col])
         else:
-            df["timestamp"] = pd.to_datetime(df.iloc[:, 0])  # fallback
+            df["timestamp"] = pd.to_datetime(df.iloc[:, 0], dayfirst = True)  # fallback
 
         if load_col:
             df["load"] = df[load_col]
