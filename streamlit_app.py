@@ -135,17 +135,17 @@ with st.sidebar:
             df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
         elif time_col:
             try:
-                df["timestamp"] = pd.to_datetime(df[date_col], dayfirst=True)
+                df["timestamp"] = pd.to_datetime(df[time_col], dayfirst=True)
             except Exception as e1:
                 try:
-                    df["timestamp"] = pd.to_datetime(df[date_col], format="mixed", dayfirst=True)
+                    df["timestamp"] = pd.to_datetime(df[time_col], format="mixed", dayfirst=True)
                 except Exception as e2:
                     try:
-                        df["timestamp"] = pd.to_datetime(df[date_col], format="ISO8601")
+                        df["timestamp"] = pd.to_datetime(df[time_col], format="ISO8601")
                     except Exception as e3:
                         raise ValueError(f"Failed to parse datetime. Errors:\n1. {e1}\n2. {e2}\n3. {e3}")
         elif date_col:
-            df["timestamp"] = pd.to_datetime(df[time_col], dayfirst = True)
+            df["timestamp"] = pd.to_datetime(df[date_col], dayfirst = True)
         else:
             df["timestamp"] = pd.to_datetime(df.iloc[:, 0], dayfirst = True)  # fallback
 
