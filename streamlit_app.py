@@ -133,7 +133,7 @@ with st.sidebar:
 
         if date_col and time_col:
             df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
-        elif date_col:
+        elif time_col:
             try:
                 df["timestamp"] = pd.to_datetime(df[date_col], dayfirst=True)
             except Exception as e1:
