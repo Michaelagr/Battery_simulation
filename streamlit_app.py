@@ -141,7 +141,7 @@ with st.sidebar:
                     df["timestamp"] = pd.to_datetime(df[date_col], format="mixed", dayfirst=True)
                 except Exception as e2:
                     try:
-                        df["timestamp"] = pd.to_datetime(df[date_col], format="ISO8601", dayfirst=True)
+                        df["timestamp"] = pd.to_datetime(df[date_col], format="ISO8601")
                     except Exception as e3:
                         raise ValueError(f"Failed to parse datetime. Errors:\n1. {e1}\n2. {e2}\n3. {e3}")
         elif time_col:
