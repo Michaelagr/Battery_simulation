@@ -121,7 +121,7 @@ def battery_simulation_v02(df, battery_capacity, power_rating, depth_of_discharg
 ######### Uploader #########
 with st.sidebar:
     st.subheader("File upload")
-    uploaded_file = st.file_uploader("📁 Upload your load profile data (CSV or XLSX). Please make sure the file has two columns 'timestamp' and 'load'.", type=["csv", "xlsx"])
+    uploaded_file = st.file_uploader("📁 Upload your load profile data (XLSX). Please make sure the file has two columns 'timestamp' and 'load'.", type=["xlsx"])
     ## Handling
     if uploaded_file:
         df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith(".csv") else pd.read_excel(uploaded_file)
