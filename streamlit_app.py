@@ -276,7 +276,7 @@ with ((tab1)):
                 fig_overview.update_layout(height=400, xaxis_title="Days", xaxis_tickangle=-45)
 
             else:
-                hourly_avg = df.groupby( ["Weekday", "time"])["load"].mean().reset_index()
+                hourly_avg = df.groupby( ["time"])["load"].mean().reset_index()
 #                weekly_avg = df_iso.groupby(["iso_year", "iso_week"])["load"].mean().reset_index()
                 fig_overview = px.bar(hourly_avg, x="time", y="load",
                                       title="Average load (hour based) ",
