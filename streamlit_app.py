@@ -128,7 +128,7 @@ with st.sidebar:
         # Try to auto-detect datetime columns
         col_map = {col.lower(): col for col in df.columns}
         date_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["date", "day", "tag", "datum"])), None)
-        time_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["time", "hour", "timestamp", "zeit","uhrzeit"])), None)
+        time_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["time", "hour", "timestamp", "zeit","uhrzeit", "timestamps"])), None)
         load_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["kw", "load", "value", "value_kw", "power", "entnahme"])), None)
 
         if date_col and time_col:
@@ -136,7 +136,7 @@ with st.sidebar:
         elif date_col:
             df["timestamp"] = pd.to_datetime(df[date_col], dayfirst = True)
         elif time_col:
-            df["timestamp"] = pd.to_datetime(df[time_col])
+            df["timestamp"] = pd.to_datetime(df[time_col], dayfirst = True)
         else:
             df["timestamp"] = pd.to_datetime(df.iloc[:, 0], dayfirst = True)  # fallback
 
