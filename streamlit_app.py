@@ -132,7 +132,7 @@ with st.sidebar:
         load_col = next((col for key, col in col_map.items() if any(kw in key for kw in ["kw", "load", "value", "value_kw", "power", "entnahme"])), None)
 
         if date_col and time_col:
-            #df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
+            df["timestamp"] = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str), format='%d.%m.%Y %H:%M')
         elif date_col:
             try:
                 df["timestamp"] = pd.to_datetime(df[date_col], dayfirst=True)
