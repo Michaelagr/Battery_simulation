@@ -195,7 +195,7 @@ with ((tab1)):
         avg_load = df["load"].mean()
         max_load = df["load"].max()
         min_load = df["load"].min()
-        total_energy_kwh = df["load"].sum() *4 / 1000  # assuming 15-min intervals
+        total_energy_kwh = df["load"].sum() /4 / 1000  # assuming 15-min intervals
         peak_load = df["load"].max()
 
         col1, col2, col3, col4, col5, col6 = st.columns(6)
