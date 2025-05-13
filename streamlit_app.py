@@ -183,6 +183,7 @@ with ((tab1)):
             st.write("**Ensure that the file contains two columns with a timestamp and the load in kW.**")
             st.write("**In case you encounter an error, ensure that the naming of the columns is 'timestamp' and 'load'.**")
             st.write("A template can be downloaded [here](%s)" % template_url)
+            st.write("Please note: The ideal format for the timestamp is dd.mm.yyyy hh:mm")
 
     if uploaded_file:
 
