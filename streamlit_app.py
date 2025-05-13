@@ -51,6 +51,7 @@ st.title("🔋 ecoplanet Battery Storage Simulation Dashboard")
 battery_efficiency = 0.9
 discharge_percentage = 0.001
 demand_charge = 200
+template_url = "https://docs.google.com/spreadsheets/d/1xJ3Lk8uy3X8piSt-IUxZgeVYqeOuRG9N/edit?usp=sharing&ouid=114799245841423325825&rtpof=true&sd=true"
 
 # -------------------- Helper functions --------------------------
 ### Peak Shaving Simulation
@@ -121,6 +122,7 @@ def battery_simulation_v02(df, battery_capacity, power_rating, depth_of_discharg
 ######### Uploader #########
 with st.sidebar:
     st.subheader("File upload")
+    st.write("Find a template [here](%s)" % template_url)
     uploaded_file = st.file_uploader("📁 Upload your load profile data (XLSX). Please make sure the file has two columns 'timestamp' and 'load'.", type=["xlsx"])
     ## Handling
     if uploaded_file:
@@ -180,6 +182,7 @@ with ((tab1)):
             st.subheader("⚠️ Please upload your load profile in the left sidebar.")
             st.write("**Ensure that the file contains two columns with a timestamp and the load in kW.**")
             st.write("**In case you encounter an error, ensure that the naming of the columns is 'timestamp' and 'load'.**")
+            st.write("A template can be downloaded [here](%s)" % template_url)
 
     if uploaded_file:
 
@@ -494,7 +497,7 @@ with tabsimulation:
                     st.markdown("### 🔺 Peak shaving threshold ")
                     st.write(f"Maximum peak reduction with selected battery: **{st.session_state.roi_power_rating}kW**")
 
-                    value_peak_reduction = st.number_input("Peakshaving load (kW) ", 0, int(peak_load), st.session_state.roi_power_rating)
+                    value_peak_reduction = st.number_input("Peakshaving load (kW) ", 0, int(peak_load)*1000000, st.session_state.roi_power_rating)
 
                     calculated_peakshaving_threshold = (peak_load - value_peak_reduction) / peak_load *100
                     st.write(f"Peak load reduction: {100-calculated_peakshaving_threshold:.2f}%")
@@ -507,7 +510,7 @@ with tabsimulation:
                     st.write("Peak shaving-related savings")
                     demand_charge_exp = st.number_input("Demand Charge (€/kW/year) ", min_value=1, value=200, help="Assumed annual savings for peak reduction.")
 
-                ###############################################################################################################################
+                ###############################################################################################################################yW
 
                 # -----------------------------        PEAKSHAVING METRICS CALCULATION   -----------------------------------------------------
 
