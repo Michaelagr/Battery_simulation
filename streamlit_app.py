@@ -557,11 +557,11 @@ with tabsimulation:
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
                         st.markdown(
-                            "<div class='metric'><div class='metric-title'>🔺 Peak load</div><div class='metric-value'>" + f"{peak_before:,.1f} kW" + "</div></div>",
+                            "<div class='metric'><div class='metric-title'>🔺 Original peak load</div><div class='metric-value'>" + f"{peak_before:,.1f} kW" + "</div></div>",
                             unsafe_allow_html=True)
                     with col2:
                         st.markdown(
-                            "<div class='metric'><div class='metric-title'>🔻 Reduced peak</div><div class='metric-value'>" + f"{peak_after:,.1f} kW" + "</div></div>",
+                            "<div class='metric'><div class='metric-title'>🔻 New peak load</div><div class='metric-value'>" + f"{peak_after:,.1f} kW" + "</div></div>",
                             unsafe_allow_html=True)
                     with col3:
                         st.markdown(
