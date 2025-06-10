@@ -217,6 +217,9 @@ with ((tab1)):
         col5.markdown(
             "<div class='metric'><div class='metric-title'> 📈 Load factor </div><div class='metric-value'>" + f"{(avg_load / max_load * 100):.2f}%" + "</div></div>",
             unsafe_allow_html=True)
+        col6.markdown(
+            "<div class='metric'><div class='metric-title'> 🟢 Volllastst. </div><div class='metric-value'>" + f"{(total_energy_kwh / peak_load):.2f}h" + "</div></div>",
+            unsafe_allow_html=True)
 
 
         #st.write("### 📊 Load profile visualization")
@@ -317,11 +320,16 @@ with ((tab1)):
                 st.write(top_peaks)
 
             with col3:
+                year = top_peaks["timestamp"].dt.year.min()
+                # Define start and end of the year
+                start = datetime.datetime(year, 1, 1)
+                end = datetime.datetime(year, 12, 31, 23, 59, 59)
+                
                 fig_top20 = px.bar(top_peaks.sort_values("load"), x="timestamp", y="load",
                                    title=f"📊 Top {n_peaks} peak loads",
                                    labels={"Load": "Power (kW)", "Timestamp": "Time"})
                 fig_top20.update_layout(xaxis_tickformat="%b")
-                fig_top20.update_layout(xaxis_title="Timestamp", xaxis_tickangle=-45, xaxis=dict(nticks=20))
+                fig_top20.update_layout(xaxis_title="Timestamp", xaxis_tickangle=-45, xaxis=dict(nticks=20, range=[start, end]))
                 st.plotly_chart(fig_top20, use_container_width=True)
 
             st.subheader("🔍 Explore context of specific peak")
