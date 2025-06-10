@@ -218,7 +218,7 @@ with ((tab1)):
             "<div class='metric'><div class='metric-title'> 📈 Load factor </div><div class='metric-value'>" + f"{(avg_load / max_load * 100):.2f}%" + "</div></div>",
             unsafe_allow_html=True)
         col6.markdown(
-            "<div class='metric'><div class='metric-title'> 🟢 Volllastst. </div><div class='metric-value'>" + f"{(total_energy_kwh / peak_load):.2f}h" + "</div></div>",
+            "<div class='metric'><div class='metric-title'> 🟢 Volllastst. </div><div class='metric-value'>" + f"{(total_energy_kwh *1000 / peak_load):.2f}h" + "</div></div>",
             unsafe_allow_html=True)
 
 
